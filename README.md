@@ -1,30 +1,80 @@
-# Coleta automatizada de dados do Sistema IBGE de Recuperação Automática (SIDRA).
-Nesse exemplo, estarei coletando dados da Produção Física Industrial Geral (PIM) de Santa Catarina, bem como dos subsetores que a compõem.
-Para isso, o material está organizando em três scripts:
-1. Coleta de dados
-2. Tratamento de dados
-3. Criação de relatório
+# Produção Industrial (PIM/IBGE) — Pipeline de Coleta, Tratamento e Análise.
 
-**Coleta de dados**
+Este repositório apresenta um pipeline completo para **coleta, tratamento, dessazonalização e análise dos dados da Produção Física Industrial (PIM-PF)** do IBGE, com foco no Brasil, Santa Catarina e nos principais setores industriais.
 
-O script de coleta de dados define, inicialmente, os parâmetros de local para o armazenamento dos dados coletados (que devem ser alterados conforme o usuário), seguido dos parâmetros para a coleta dos dados separados por três dicionários, sendo: um para coletar os dados para o Brasil e Santa Catarina, dois para coletar os dados somente para o Brasil e três para coletar os dados para todos as Unidades Federativas.
+O projeto está estruturado em três scripts principais:
+1. Coleta de dados - coleta de dados
+2. Tratamento de dados - impeza, padronização, dessazonalização e construção das categorias econômicas
+3. Criação de relatório - cálculo das variações econômicas (MoM, YoY, acumulado, 12 meses, trimestre móvel)
 
-Para realizar a integração com o sistema do IBGE, foi utilizado o pacote sidrapy.
+**Objetivo Geral**
 
-Dentro do primeiro dicionário, tem-se duas chaves, a primeira é referente ao **Brasil** com os seguintes parâmetros:
-- **level: 1**, para dados a nível nacional (Brasil)
-- **code: all**, (para todos os estados)
-- **classifications: 129314** (Indústria geral), **129315** (Indústrias extrativas), **129316** (Indústrias de transformação), são as atividades industriais.
+Este projeto automatiza todo o processo de preparação dos dados da produção industrial, permitindo:
+- Coleta atualizada via SIDRA/IBGE
+- Padronização de bases históricas
+- Dessazonalização via X13-ARIMA-SEATS
+- Construção das categorias econômicas oficiais
+- Cálculo dos principais indicadores econômicos
+- Geração de tabelas e séries para análises
 
-A segunda chave refere-se ao **Santa Catarina**, tem os seguintes parâmetros:
-- **level: 3**, para definir o nível estadual
-- **code: 42**, define o código do estado
-- **classifications: 129314** (Indústria geral), define a atividade industrial
+**Estrutura dos Scripts**
+**Script 1 — Coleta dos Dados**
 
-No segundo dicionário, tem-se os parâmetros para o **Brasil**.
+Responsável por:
+- Coletar dados atualizados via sidrapy (Brasil e Santa Catarina)
 
-No terceiro dicionário, tem os parâmetros para identificar cada estado na coleta de dados.
+**Script 2 — Tratamento dos Dados**
 
-Após a identificação, são feitas alguns loops e laços de repetição para coletar os dados, armazená-los em um dicionário vazio e transformar esse dicionário em um dataframe.
+Responsável por:
+- Importar bases brutas
+- Limpar colunas, identificar valores numéricos e converter formatos
+- Dessazonalizar séries usando X13-ARIMA-SEATS
+- Calcular categorias econômicas com pesos oficiais
+- Salvar todas as séries tratadas em um único arquivo Excel
 
-Por fim, o scritp de coleta salvo esses dados em um arquivo em excel (xlsx) separados por aba.
+**Principais etapas**:
+
+1. **Função auxiliar**: Identifica valores realmente numéricos para conversão.
+
+2. **Limpeza e filtragem**: Remove strings, espaços, colunas vazias e converte para **float**.
+
+3. **Dessazonalização (X13-ARIMA-SEATS)**: A dessazonalização é aplicada nas séries: PIM SC, Setores industriais e Categorias Econômicas.
+
+4. **Cálculo das categorias econômicas**
+
+Com base nos pesos oficiais do IBGE:
+- Bens de Consumo, Intermediários e de capital.
+
+Por fim, o script salva todos os dados gerados num arquivo excel com as seguintes abas:
+- PIM
+- PIM (Sazonal)
+- Categorias Econômicas
+- Categorias Econômicas (Sazonal)
+- PIM Estados
+- PIM Brasil
+- PIM Brasil (Sazonal)
+
+**Script 3 — Análise dos Dados**
+
+Responsável por:
+- Calcular as variações econômicas:
+    - Mensal (MoM)
+    - Interanual (YoY)
+    - Acumulado no ano (YTD)
+    - Acumulado em 12 meses
+    - Trimestre Móvel Interanual
+- Gerar tabelas
+- Preparar séries para gráficos (Brasil x SC)
+
+**Função principal**
+
+**calcular_variacoes()**
+- Identifica colunas numéricas automaticamente
+- Organiza a série temporal por data
+- Calcula todas as variações
+- Retorna somente o ponto mais recente
+
+**Função gráfica**
+
+**calcular_variacoes_series()**
+
